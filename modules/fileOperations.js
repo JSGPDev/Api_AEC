@@ -17,6 +17,24 @@ router.post('/crear-archivo', async (req, res) => {
     }
 });
 
+// Ruta para leer el contenido de un archivo JSON
+router.get('/ver-contenido', async (req, res) => {
+    const { nombreArchivo } = req.body; // El nombre del archivo se pasa como parámetro de consulta
+    if (nombreArchivo === 'Credentials') {
+        res.status(403).send('No tienes permisos para leer este archivo');
+        return;
+    }
+    try {
+        // Lee el contenido del archivo JSON
+        const contenido = await fs.readFile(`./data/${nombreArchivo}.json`, 'utf-8');
+        // Envía el contenido como respuesta
+        res.send(contenido);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al leer el archivo');
+    }
+});
+
 // Ruta para editar un archivo JSON existente
 router.put('/editar-archivo', async (req, res) => {
     const { nombreArchivo, nuevoContenido } = req.body;

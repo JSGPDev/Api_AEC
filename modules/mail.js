@@ -23,13 +23,17 @@ let transporter = nodemailer.createTransport({
 
 //estructura para enviar el mail
 const sendMail = (mailOptions) => {
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Correo electrónico enviado: ' + info.response);
-        }
+    return new Promise((resolve, reject) => {
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.error(error);
+                reject(error); // Rechaza la promesa si hay un error
+            } else {
+                console.log('Correo electrónico enviado: ' + info.response);
+                resolve(info); // Resuelve la promesa con la información del correo enviado
+            }
+        });
     });
-}
+};
 
-module.exports = sendMail;
+module.exports = { sendMail };
