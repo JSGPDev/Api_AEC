@@ -2,6 +2,34 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs').promises;
 
+// Ruta para cargar una imagen
+router.post('/cargar-imagen', async (req, res) => {
+    const { nombreImagen, imagen } = req.body;
+
+    try {
+        // Escribe la imagen en el archivo
+        await fs.writeFile(`./imagenes/${nombreImagen}`, imagen, 'base64');
+        res.send('Imagen cargada exitosamente');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al cargar la imagen');
+    }
+});
+
+// Ruta para descargar una imagen
+router.get('/traer-imagen/:nombreImagen', async (req, res) => {
+    const { nombreImagen } = req.params;
+
+    try {
+        // Lee la imagen del archivo
+        const imagen = await fs.readFile(`./imagenes/${nombreImagen}`, 'base64');
+        // Envía la imagen como respuesta
+        res.send(imagen);
+    } catch (error) {
+        console.error(error);
+        res.status(404).send('Imagen no encontrada');
+    }
+});
 
 // Ruta para crear un archivo JSON
 router.post('/crear-archivo', async (req, res) => {
