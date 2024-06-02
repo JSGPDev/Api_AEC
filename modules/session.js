@@ -2,6 +2,7 @@ const express = require('express');
 const { sendMail } = require('./mail');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const { randomBytes } = require('crypto');
 const fs = require('fs').promises;
 
 let user_data_temp = {}; // Variable global para almacenar los datos temporales del usuario
@@ -38,19 +39,68 @@ router.post('/log-in', async (req, res) => {
                 const passwordMatch = await bcrypt.compare(password, usuarioEncontrado.pass);
                 if (passwordMatch) {
                     // Credenciales correctas
-                    res.send(true);
+                    console.log("credenciales correctas");
+
+                    console.log("creando sesion");
+
+                    const nombreArchivo = "session";
+                    const idUnico = randomBytes(6).toString('hex');
+                    const nuevoContenido = {
+                        [idUnico]: {
+                            "hora": new Date()
+                        }
+                    }
+
+                    // Edita el archivo
+                    try {
+                        // Lee el archivo existente
+                        const archivo = await fs.readFile(`./data/${nombreArchivo}.json`, 'utf-8');
+                        // Parsea el contenido JSON del archivo
+                        const contenidoExistente = JSON.parse(archivo);
+                        // Fusiona el nuevo contenido con el existente
+                        const contenidoActualizado = { ...contenidoExistente, ...nuevoContenido };
+                        // Escribe el contenido actualizado en el archivo
+                        await fs.writeFile(`./data/${nombreArchivo}.json`, JSON.stringify(contenidoActualizado));
+                        console.log('Archivo editado exitosamente');
+                    } catch (error) {
+                        console.error('Error al editar el archivo:', error);
+                        res.status(500).send('Error al editar el archivo');
+                        return; // Importante: detener la ejecución del código aquí para evitar enviar múltiples respuestas
+                    }
+
+                    setTimeout(async () => {
+                        try {
+                            // Lee el contenido del archivo de sesiones
+                            const contenido = await fs.readFile('./data/session.json', 'utf-8');
+                            // Parsea el contenido JSON del archivo
+                            const sesiones = JSON.parse(contenido);
+
+                            // Elimina la entrada de sesión correspondiente al idSesion
+                            delete sesiones[idUnico];
+
+                            // Escribe el contenido actualizado en el archivo
+                            await fs.writeFile('./data/session.json', JSON.stringify(sesiones));
+                            console.log('Entrada de sesión eliminada correctamente');
+                        } catch (error) {
+                            console.error('Error al eliminar la entrada de sesión:', error);
+                            throw error;
+                        }
+                    }, 4 * 3600 * 1000);
+
+                    // Envía la respuesta de inicio de sesión al cliente
+                    res.send({ "correct": true, "sessionId": idUnico, "message": "session iniciada correctamente" });
                 } else {
                     // Credenciales incorrectas
                     log_in_trys_amount++;
-                    res.send(false);
+                    res.send({ "correct": false, "message": "Usuario no encontrado" });
                 }
             } else {
                 // Usuario no encontrado
                 log_in_trys_amount++;
-                res.send(false);
+                res.send({ "correct": false, "message": "Usuario no encontrado" });
             }
         } catch (error) {
-            console.error(error);
+            console.error('Error al leer el archivo:', error);
             res.status(500).send('Error al leer el archivo');
         }
     } else {
@@ -58,6 +108,30 @@ router.post('/log-in', async (req, res) => {
         res.status(429).send("Demasiadas solicitudes, por favor intenta más tarde");
     }
 });
+
+router.get('/islogged/:sessionId', async (req, res) => {
+    const sessionId = req.params.sessionId;
+    try {
+        const nombreArchivo = "session"; // El nombre del archivo se pasa como parámetro de consulta
+
+        // Lee el contenido del archivo JSON
+        const contenido = await fs.readFile(`./data/${nombreArchivo}.json`, 'utf-8');
+        const sesiones = JSON.parse(contenido);
+
+        // Verifica si el ID de sesión proporcionado existe en las sesiones activas
+        if (sesiones.hasOwnProperty(sessionId)) {
+            // Si el ID de sesión está presente, el usuario está autenticado
+            res.send({ "logged": true });
+        } else {
+            // Si el ID de sesión no está presente, el usuario no está autenticado
+            res.send({ "logged": false });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al leer el archivo');
+    }
+});
+
 
 router.put('/sign-up', async (req, res) => {
     const { user, password } = req.body;

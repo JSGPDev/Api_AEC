@@ -22,7 +22,7 @@ client.initialize();
 let qrCodeUrl = '';
 
 client.on('qr', async (qr) => {
-    qrcodet.generate(qr, { small: true })
+    //qrcodet.generate(qr, { small: true })
     try {
         qrCodeUrl = await qrcode.toDataURL(qr);
     } catch (err) {
