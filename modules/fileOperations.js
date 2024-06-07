@@ -82,6 +82,76 @@ router.post('/modificar-card-imagen', async (req, res) => {
     });
 });
 
+router.post('/modificar-imagen', async (req, res) => {
+    upload(req, res, async function (err) {
+        // Manejo de errores de Multer
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ correcto: false, error: err.message });
+        } else if (err) {
+            return res.status(400).json({ correcto: false, error: 'Solo se permiten imágenes' });
+        }
+
+        try {
+            // Extraer datos del cuerpo de la solicitud
+            const { session, nombreArchivo, campo, valor } = req.body;
+
+            // Leer y parsear el archivo de sesiones
+            const sessions = JSON.parse(await fs.readFile(`./data/session.json`, 'utf-8'));
+
+            // Validar si la sesión existe
+            if (!sessions.hasOwnProperty(session)) {
+                console.log('La sesión no existe o expiró');
+                return res.status(403).send('La sesión no existe o expiró, por favor inicia sesión nuevamente');
+            }
+
+            // Obtener la ruta de la imagen cargada
+            const imagePath = req.file ? req.file.filename : null;
+
+            // Parsear el campo 'valor' a objeto si es una cadena
+            let valorParsed = typeof valor === 'string' ? JSON.parse(valor) : valor;
+
+            // Actualizar el campo de la imagen si existe una imagen cargada
+            if (imagePath) {
+                const host = req.get('host');
+                const imageUrl = `http://${host}/archivo/traer-imagen/${imagePath}`;
+                const keys = campo.split('.');
+                const lastKey = keys.pop();
+
+                let obj = valorParsed;
+                for (let key of keys) {
+                    if (!obj[key]) obj[key] = {};
+                    obj = obj[key];
+                }
+                obj[lastKey] = imageUrl;
+            }
+
+            // Leer y parsear el archivo JSON especificado
+            const archivoPath = `./data/${nombreArchivo}.json`;
+            const archivoExistente = await fs.readFile(archivoPath, 'utf-8');
+            const contenidoExistente = JSON.parse(archivoExistente);
+
+            // Actualizar el campo especificado en el archivo JSON
+            const keys = campo.split('.');
+            let obj = contenidoExistente;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!obj[keys[i]]) obj[keys[i]] = {};
+                obj = obj[keys[i]];
+            }
+            obj[keys[keys.length - 1]] = valorParsed[keys[keys.length - 1]];
+
+            // Escribir el contenido actualizado de nuevo en el archivo JSON
+            await fs.writeFile(archivoPath, JSON.stringify(contenidoExistente, null, 2), 'utf-8');
+
+            // Responder con éxito
+            res.status(201).json({ correcto: true, message: 'Archivo editado exitosamente' });
+        } catch (error) {
+            console.error(error);
+            // Responder con error en caso de excepción
+            res.status(500).json({ correcto: false, error: 'Ocurrió un error al subir la imagen' });
+        }
+    });
+});
+
 // Ruta para cargar una imagen
 router.post('/cargar-imagen', async (req, res) => {
     const { nombreImagen, imagen } = req.body;
@@ -124,7 +194,7 @@ router.post('/crear-archivo', async (req, res) => {
 // Ruta para leer el contenido de un archivo JSON
 router.get('/ver-contenido/:nombreArchivo', async (req, res) => {
     const { nombreArchivo } = req.params; // El nombre del archivo se pasa como parámetro de consulta
-    if (nombreArchivo === 'Credentials') {
+    if (nombreArchivo === 'Credentials' || nombreArchivo === 'session') {
         res.status(403).send('No tienes permisos para leer este archivo');
         return;
     }
@@ -168,6 +238,37 @@ router.put('/editar-archivo', async (req, res) => {
             obj = obj[keys[i]];
         }
         obj[keys[keys.length - 1]] = valor;
+
+        // Escribe el contenido actualizado en el archivo
+        await fs.writeFile(archivoPath, JSON.stringify(contenidoExistente, null, 2), 'utf-8');
+        res.send('Archivo editado exitosamente');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al editar el archivo');
+    }
+});
+
+router.put('/actualizar-stat', async (req, res) => {
+    const { campo } = req.body;
+    try {
+        // Lee el archivo existente
+        const archivoPath = './data/stats.json';
+        const archivoExistente = await fs.readFile(archivoPath, 'utf-8');
+
+        // Parsea el contenido JSON del archivo existente
+        const contenidoExistente = JSON.parse(archivoExistente);
+
+        if (campo !== "views") {
+            // Incrementar el valor del campo especificado
+            contenidoExistente[campo] = (contenidoExistente[campo] || 0) + 1;
+        } else {
+            // Manejar el caso especial de "views"
+            contenidoExistente.views[new Date().toLocaleDateString()] = (contenidoExistente.views[new Date().toLocaleDateString()] || 0) + 1;
+            /*const cantView = Object.keys(contenidoExistente.views).length;
+            contenidoExistente.views[cantView + 1] = {
+                "date": new Date().toLocaleDateString()
+            };*/
+        }
 
         // Escribe el contenido actualizado en el archivo
         await fs.writeFile(archivoPath, JSON.stringify(contenidoExistente, null, 2), 'utf-8');
