@@ -5,7 +5,7 @@ const app = express();
 const whatsappRoutes = require('./modules/whatsapp');
 const fileRoutes = require('./modules/fileOperations');
 const sessionRoutes = require('./modules/session')
-const mail = require('./modules/mail');
+const pricesRoutes = require('./modules/prices');
 const cors = require("cors");
 const fs = require('fs').promises;
 
@@ -18,6 +18,7 @@ app.use(bodyParser.json());
 app.use('/whatsapp', whatsappRoutes);
 app.use('/archivo', fileRoutes);
 app.use('/session', sessionRoutes);
+app.use('/prices', pricesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
