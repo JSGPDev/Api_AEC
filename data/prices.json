@@ -1,0 +1,82 @@
+{
+    "Enfermeria": {
+        "Inyectologia": {
+            "type": "visita",
+            "price": 2000
+        },
+        "Curaciones": {
+            "type": "visita",
+            "price": 2500
+        },
+        "Cuidado post quirurgico": {
+            "type": "visita",
+            "price": 3000
+        },
+        "Administracion de medicamentos": {
+            "type": "visita",
+            "price": 2200
+        },
+        "Administracion y manejo de ostomias": {
+            "type": "visita",
+            "price": 2700
+        },
+        "Retiro de puntos": {
+            "type": "visita",
+            "price": 2400
+        },
+        "Toma de signos vitales": {
+            "type": "visita",
+            "price": 1800
+        }
+    },
+    "Acompanamiento": {
+        "Citas medicas": {
+            "type": "visita",
+            "price": 1500
+        },
+        "Acompanamiento en casa diurno y nocturno": {
+            "type": "visita",
+            "price": 3500
+        },
+        "Procedimientos ambulatorios": {
+            "type": "visita",
+            "price": 3000
+        },
+        "Acompanamiento en hospitalización": {
+            "type": "visita",
+            "price": 3200
+        }
+    },
+    "Rehabilitacion": {
+        "Terapia ocupacional": {
+            "type": "visita",
+            "price": 4000
+        },
+        "Terapia fisica": {
+            "type": "visita",
+            "price": 3800
+        },
+        "Terapia respiratoria": {
+            "type": "visita",
+            "price": 3500
+        },
+        "Terapia fonoaudiologia": {
+            "type": "visita",
+            "price": 3600
+        }
+    },
+    "Medicina": {
+        "Visita medica": {
+            "type": "visita",
+            "price": 5000
+        },
+        "Lectura de examenes": {
+            "type": "servicio",
+            "price": 1200
+        },
+        "Formulacion de medicamentos": {
+            "type": "servicio",
+            "price": 1300
+        }
+    }
+}
