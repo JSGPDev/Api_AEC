@@ -137,6 +137,8 @@ router.put('/sign-up', async (req, res) => {
     const { user, password } = req.body;
 
     const contenido = await fs.readFile(`./data/Credentials.json`, 'utf-8');
+    const data = await fs.readFile('./data/data.json', 'utf-8');
+    const mail = JSON.parse(data).contact.Email
     // Parsea el contenido JSON del archivo
     const credenciales = JSON.parse(contenido);
 
@@ -159,7 +161,7 @@ router.put('/sign-up', async (req, res) => {
 
     let mailOptions = {
         from: 'atencionencasa.contacto@gmail.com',
-        to: user,
+        to: mail,
         subject: 'Código de Verificación',
         html: `
             <p>Hola,</p>

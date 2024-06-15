@@ -35,11 +35,12 @@ router.post('/all', async (req, res) => {
                 </tr>
                 `
         }
-    }
-    tables += `
+
+        tables += `
             </tbody>
         </table>
         `
+    }
 
     const html = `
         <!DOCTYPE html>
@@ -166,12 +167,19 @@ router.post('/all', async (req, res) => {
 })
 
 router.post('/quote', async (req, res) => {
-    const { email, serv, funct, cantidad } = req.body;
+    const { nombre, email, serv, funct, cantidad, telefono } = req.body || 'null';
+
     const servi = JSON.parse(await fs.readFile(`./data/prices.json`, 'utf-8'))[serv];
     const contactData = JSON.parse(await fs.readFile(`./data/data.json`, 'utf-8')).contact;
 
     const servicio = servi[funct];
     const total = cantidad * servicio.price;
+
+    // Obtener el nombre del host y el protocolo
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const subscribeUrl = `${protocol}://${host}/prices/subscribe/${email}/${nombre}/${telefono}/${serv}/${funct}/${cantidad}`;
+
     const html = `
         <!DOCTYPE html>
         <html lang="es">
@@ -291,7 +299,7 @@ router.post('/quote', async (req, res) => {
             <body>
                 <main>
                     <h1>FACTURA</h1>
-                    <p>Estimado cliente,</p>
+                    <p>Estimad@ ${nombre},</p>
                     <p>A continuación, encontrará el detalle de los servicios
                         solicitados:</p>
 
@@ -317,6 +325,9 @@ router.post('/quote', async (req, res) => {
                     <div class="total" id="totalPrecio">
                         Precio Total: ${total}
                     </div>
+
+                    <p>En caso de querer contratar, por favor haz click aquí: 
+                    <a href="${subscribeUrl}">CONTRATAR SERVICIO</a></p>
 
                     <div class="footer">
                         <p>Gracias por su diligencia.</p>
@@ -349,8 +360,8 @@ router.post('/quote', async (req, res) => {
     }
 });
 
-router.post('/subscribe', async (req, res) => {
-    const { email, Nombre, telefono, serv, funct, cantidad } = req.body;
+router.get('/subscribe/:email/:Nombre/:telefono/:serv/:funct/:cantidad', async (req, res) => {
+    const { email, Nombre, telefono, serv, funct, cantidad } = req.params;
     const servi = JSON.parse(await fs.readFile(`./data/prices.json`, 'utf-8'))[serv];
     const contactData = JSON.parse(await fs.readFile(`./data/data.json`, 'utf-8')).contact;
     const servicio = servi[funct];
@@ -735,6 +746,6 @@ router.post('/subscribe', async (req, res) => {
         console.error('Error al enviar correo:', error);
         res.status(500).send({ error: 'Error interno al enviar el correo electrónico. Por favor, inténtelo de nuevo más tarde.' });
     }
-})
+});
 
 module.exports = router;

@@ -19,7 +19,7 @@
     },
     "Calidad": {
       "text": "texto de prueba para Calidad",
-      "img": "http://127.0.0.1:5501/view/img/asistente.png"
+      "img": "/view/img/asistente.png"
     },
     "Servicio": {
       "text": "texto de prueba para Servicio",
@@ -35,11 +35,11 @@
     },
     "Experiencia": {
       "text": "texto de prueba para Experiencia jojojojoj",
-      "img": "http://127.0.0.1:5501/view/img/asistente.png"
+      "img": "/view/img/asistente.png"
     },
     "Control": {
       "text": "texto de prueba para Control",
-      "img": "http://127.0.0.1:5501/view/img/asistente.png"
+      "img": "/view/img/asistente.png"
     }
   },
   "services": {

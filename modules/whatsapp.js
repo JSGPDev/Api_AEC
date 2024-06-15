@@ -5,6 +5,10 @@ const qrcodet = require('qrcode-terminal');
 const qrcode = require('qrcode');
 const fs = require('fs').promises;
 
+const chatBot = require('./whatsaapBot.js');
+
+let diccionarioUsuarios = {};
+
 let qrCodeUrl = '';
 let logged = false;
 const client = new Client({
@@ -67,11 +71,25 @@ client.on('disconnected', async (reason) => {
     console.log('Session destroyed successfully');
 });
 
-client.on('message', message => {
-    if (message.body.toLowerCase() === 'hola') {
-        client.sendMessage(message.from, 'hola :)');
+client.on('message', async message => {
+    let chatId = message.from;
+    let phoneNumber = chatId.split('@')[0];
+
+    // Verificar si el número ya está registrado en el diccionario
+    if (!diccionarioUsuarios[phoneNumber]) {
+        // Si no está, agregar al diccionario
+        diccionarioUsuarios[phoneNumber] = new chatBot(phoneNumber);
+        //client.sendMessage(chatId, `Hola :) Tu número es ${phoneNumber} y has sido registrado.`);
+    }
+
+    const respons = diccionarioUsuarios[phoneNumber].handleUserResponse(message.body)
+    // Usar la función handleResponse del chatBot para el usuario específico
+    client.sendMessage(chatId, respons);
+    if (message.body.trim().toLowerCase() === 'adios') {
+        delete diccionarioUsuarios[phoneNumber];
     }
 });
+
 
 const getWhatsAppNumber = () => {
     try {
